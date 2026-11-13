@@ -1,0 +1,278 @@
+---
+# =====================================================================
+#  MT RECONOCEDORA:  L = { w#w | w ∈ {a, b, c}+ }
+# =====================================================================
+#  Acepta las cadenas formadas por una palabra no vacía w sobre {a, b, c},
+#  un separador '#' y una copia exacta de w. L no es libre de contexto.
+#
+#  Idea: la memoria caché del estado [q, c] "carga" cada símbolo de la
+#  izquierda hasta su pareja a la derecha del '#':
+#    1. Se toma el primer símbolo s no marcado de la izquierda, se marca
+#       con X y se guarda en la caché: [q1, s].
+#    2. Se avanza hasta '#', se saltan las X de la derecha y se compara el
+#       primer símbolo no marcado con la caché. Si coincide se marca con X;
+#       si no, no existe transición y la cadena se rechaza.
+#    3. Se regresa a la izquierda hasta la última X marcada y se repite.
+#    4. Cuando a la izquierda ya no quedan símbolos (se lee '#'), se
+#       verifica que a la derecha solo haya X y se acepta.
+#
+#  Estados:
+#    q0  inicio: exige que w no sea vacía y toma su primer símbolo
+#    q1  [q1, s] lleva s hacia la derecha hasta '#'
+#    q2  [q2, s] salta las X de la derecha y compara con s
+#    q3  regresa a la izquierda hasta '#'
+#    q4  regresa a la izquierda hasta la última X de w
+#    q5  toma el siguiente símbolo de w o, si ya no hay, pasa a verificar
+#    q6  verifica que a la derecha de '#' solo queden X
+#    q7  aceptación
+# =====================================================================
+name: Reconocedora de w#w
+description: "Acepta L = { w#w | w ∈ {a, b, c}+ } usando la caché del estado"
+q_states:
+  q_list:
+  - q0
+  - q1
+  - q2
+  - q3
+  - q4
+  - q5
+  - q6
+  - q7
+  initial: q0
+  final: q7
+alphabet:
+- a
+- b
+- c
+- "#"
+tape_alphabet:
+- a
+- b
+- c
+- "#"
+- X
+-
+delta:
+
+# ---------------------------------------------------------------------
+# q0: inicio. Marca el primer símbolo de w con X y lo guarda en caché
+# ---------------------------------------------------------------------
+# δ([q0, B], a) = ([q1, a], X, R)
+- params:
+    initial_state: q0
+    mem_cache_value:
+    tape_input: a
+  output:
+    final_state: q1
+    mem_cache_value: a
+    tape_output: X
+    tape_displacement: R
+# δ([q0, B], b) = ([q1, b], X, R)
+- params:
+    initial_state: q0
+    mem_cache_value:
+    tape_input: b
+  output:
+    final_state: q1
+    mem_cache_value: b
+    tape_output: X
+    tape_displacement: R
+# δ([q0, B], c) = ([q1, c], X, R)
+- params:
+    initial_state: q0
+    mem_cache_value:
+    tape_input: c
+  output:
+    final_state: q1
+    mem_cache_value: c
+    tape_output: X
+    tape_displacement: R
+
+# ---------------------------------------------------------------------
+# q1: lleva el símbolo de la caché hacia la derecha hasta '#'
+# ---------------------------------------------------------------------
+# δ([q1, a], a) = ([q1, a], a, R)
+- params:
+    initial_state: q1
+    mem_cache_value: a
+    tape_input: a
+  output:
+    final_state: q1
+    mem_cache_value: a
+    tape_output: a
+    tape_displacement: R
+# δ([q1, a], b) = ([q1, a], b, R)
+- params:
+    initial_state: q1
+    mem_cache_value: a
+    tape_input: b
+  output:
+    final_state: q1
+    mem_cache_value: a
+    tape_output: b
+    tape_displacement: R
+# δ([q1, a], c) = ([q1, a], c, R)
+- params:
+    initial_state: q1
+    mem_cache_value: a
+    tape_input: c
+  output:
+    final_state: q1
+    mem_cache_value: a
+    tape_output: c
+    tape_displacement: R
+# δ([q1, b], a) = ([q1, b], a, R)
+- params:
+    initial_state: q1
+    mem_cache_value: b
+    tape_input: a
+  output:
+    final_state: q1
+    mem_cache_value: b
+    tape_output: a
+    tape_displacement: R
+# δ([q1, b], b) = ([q1, b], b, R)
+- params:
+    initial_state: q1
+    mem_cache_value: b
+    tape_input: b
+  output:
+    final_state: q1
+    mem_cache_value: b
+    tape_output: b
+    tape_displacement: R
+# δ([q1, b], c) = ([q1, b], c, R)
+- params:
+    initial_state: q1
+    mem_cache_value: b
+    tape_input: c
+  output:
+    final_state: q1
+    mem_cache_value: b
+    tape_output: c
+    tape_displacement: R
+# δ([q1, c], a) = ([q1, c], a, R)
+- params:
+    initial_state: q1
+    mem_cache_value: c
+    tape_input: a
+  output:
+    final_state: q1
+    mem_cache_value: c
+    tape_output: a
+    tape_displacement: R
+# δ([q1, c], b) = ([q1, c], b, R)
+- params:
+    initial_state: q1
+    mem_cache_value: c
+    tape_input: b
+  output:
+    final_state: q1
+    mem_cache_value: c
+    tape_output: b
+    tape_displacement: R
+# δ([q1, c], c) = ([q1, c], c, R)
+- params:
+    initial_state: q1
+    mem_cache_value: c
+    tape_input: c
+  output:
+    final_state: q1
+    mem_cache_value: c
+    tape_output: c
+    tape_displacement: R
+# δ([q1, a], #) = ([q2, a], #, R)
+- params:
+    initial_state: q1
+    mem_cache_value: a
+    tape_input: "#"
+  output:
+    final_state: q2
+    mem_cache_value: a
+    tape_output: "#"
+    tape_displacement: R
+# δ([q1, b], #) = ([q2, b], #, R)
+- params:
+    initial_state: q1
+    mem_cache_value: b
+    tape_input: "#"
+  output:
+    final_state: q2
+    mem_cache_value: b
+    tape_output: "#"
+    tape_displacement: R
+# δ([q1, c], #) = ([q2, c], #, R)
+- params:
+    initial_state: q1
+    mem_cache_value: c
+    tape_input: "#"
+  output:
+    final_state: q2
+    mem_cache_value: c
+    tape_output: "#"
+    tape_displacement: R
+
+# ---------------------------------------------------------------------
+# q2: salta las X ya emparejadas y compara con la caché
+#     (si el símbolo no coincide no hay transición: se rechaza)
+# ---------------------------------------------------------------------
+# δ([q2, a], X) = ([q2, a], X, R)
+- params:
+    initial_state: q2
+    mem_cache_value: a
+    tape_input: X
+  output:
+    final_state: q2
+    mem_cache_value: a
+    tape_output: X
+    tape_displacement: R
+# δ([q2, b], X) = ([q2, b], X, R)
+- params:
+    initial_state: q2
+    mem_cache_value: b
+    tape_input: X
+  output:
+    final_state: q2
+    mem_cache_value: b
+    tape_output: X
+    tape_displacement: R
+# δ([q2, c], X) = ([q2, c], X, R)
+- params:
+    initial_state: q2
+    mem_cache_value: c
+    tape_input: X
+  output:
+    final_state: q2
+    mem_cache_value: c
+    tape_output: X
+    tape_displacement: R
+# δ([q2, a], a) = ([q3, B], X, L)
+- params:
+    initial_state: q2
+    mem_cache_value: a
+    tape_input: a
+  output:
+    final_state: q3
+    mem_cache_value:
+    tape_output: X
+    tape_displacement: L
+# δ([q2, b], b) = ([q3, B], X, L)
+- params:
+    initial_state: q2
+    mem_cache_value: b
+    tape_input: b
+  output:
+    final_state: q3
+    mem_cache_value:
+    tape_output: X
+    tape_displacement: L
+# δ([q2, c], c) = ([q3, B], X, L)
+- params:
+    initial_state: q2
+    mem_cache_value: c
+    tape_input: c
+  output:
+    final_state: q3
+    mem_cache_value:
+    tape_output: X
+    tape_displacement: L
