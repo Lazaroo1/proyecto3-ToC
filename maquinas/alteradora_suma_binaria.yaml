@@ -409,3 +409,136 @@ delta:
     mem_cache_value:
     tape_output:
     tape_displacement: L
+
+# ---------------------------------------------------------------------
+# q6: limpia las marcas hacia la izquierda: X -> 0, Y -> 1
+# ---------------------------------------------------------------------
+# δ([q6, B], X) = ([q6, B], 0, L)
+- params:
+    initial_state: q6
+    mem_cache_value:
+    tape_input: X
+  output:
+    final_state: q6
+    mem_cache_value:
+    tape_output: '0'
+    tape_displacement: L
+# δ([q6, B], Y) = ([q6, B], 1, L)
+- params:
+    initial_state: q6
+    mem_cache_value:
+    tape_input: Y
+  output:
+    final_state: q6
+    mem_cache_value:
+    tape_output: '1'
+    tape_displacement: L
+# δ([q6, B], 0) = ([q6, B], 0, L)
+- params:
+    initial_state: q6
+    mem_cache_value:
+    tape_input: '0'
+  output:
+    final_state: q6
+    mem_cache_value:
+    tape_output: '0'
+    tape_displacement: L
+# δ([q6, B], 1) = ([q6, B], 1, L)
+- params:
+    initial_state: q6
+    mem_cache_value:
+    tape_input: '1'
+  output:
+    final_state: q6
+    mem_cache_value:
+    tape_output: '1'
+    tape_displacement: L
+# δ([q6, B], B) = ([q7, B], B, R)
+- params:
+    initial_state: q6
+    mem_cache_value:
+    tape_input:
+  output:
+    final_state: q7
+    mem_cache_value:
+    tape_output:
+    tape_displacement: R
+
+# ---------------------------------------------------------------------
+# q7: quita ceros a la izquierda; al encontrar un 1 el resultado está listo
+# ---------------------------------------------------------------------
+# δ([q7, B], 1) = ([q10, B], 1, S)
+- params:
+    initial_state: q7
+    mem_cache_value:
+    tape_input: '1'
+  output:
+    final_state: q10
+    mem_cache_value:
+    tape_output: '1'
+    tape_displacement: S
+# δ([q7, B], 0) = ([q8, B], 0, R)
+- params:
+    initial_state: q7
+    mem_cache_value:
+    tape_input: '0'
+  output:
+    final_state: q8
+    mem_cache_value:
+    tape_output: '0'
+    tape_displacement: R
+
+# ---------------------------------------------------------------------
+# q8: si después del 0 ya no hay dígitos, el resultado es 0 y se conserva
+# ---------------------------------------------------------------------
+# δ([q8, B], B) = ([q10, B], B, L)
+- params:
+    initial_state: q8
+    mem_cache_value:
+    tape_input:
+  output:
+    final_state: q10
+    mem_cache_value:
+    tape_output:
+    tape_displacement: L
+# δ([q8, B], 0) = ([q9, B], 0, L)
+- params:
+    initial_state: q8
+    mem_cache_value:
+    tape_input: '0'
+  output:
+    final_state: q9
+    mem_cache_value:
+    tape_output: '0'
+    tape_displacement: L
+# δ([q8, B], 1) = ([q9, B], 1, L)
+- params:
+    initial_state: q8
+    mem_cache_value:
+    tape_input: '1'
+  output:
+    final_state: q9
+    mem_cache_value:
+    tape_output: '1'
+    tape_displacement: L
+
+# ---------------------------------------------------------------------
+# q9: el 0 era un cero a la izquierda: se borra
+# ---------------------------------------------------------------------
+# δ([q9, B], 0) = ([q7, B], B, R)
+- params:
+    initial_state: q9
+    mem_cache_value:
+    tape_input: '0'
+  output:
+    final_state: q7
+    mem_cache_value:
+    tape_output:
+    tape_displacement: R
+
+simulation_strings:
+- '1011+110'       # 11 + 6  = 17  -> 10001
+- '111+111'        # 7 + 7   = 14  -> 1110
+- '1111+1'         # 15 + 1  = 16  -> 10000 (el acarreo extiende x)
+- '101+1101'       # 5 + 13  = 18  -> 10010 (y más largo que x)
+- '0010+0011'      # 2 + 3   = 5   -> 101   (se quitan ceros a la izquierda)
