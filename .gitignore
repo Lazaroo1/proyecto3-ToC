@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Pruebas
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Salidas generadas por el simulador
+salidas/
+*.out.txt
+
+# Editores / SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
