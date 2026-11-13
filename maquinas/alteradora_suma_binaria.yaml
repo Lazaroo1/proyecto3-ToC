@@ -1,0 +1,411 @@
+---
+# =====================================================================
+#  MT ALTERADORA:  suma binaria   x+y  ->  x + y
+# =====================================================================
+#  Recibe dos números binarios separados por '+' y deja en la cinta
+#  únicamente su suma en binario, sin ceros a la izquierda.
+#  Ejemplo: 1011+110 (11 + 6)  ->  10001 (17)
+#
+#  Idea: se suma bit a bit, del menos al más significativo, como a mano.
+#    1. Se toma el último bit de y, se borra y se guarda en la caché.
+#    2. Se lleva hasta x, se saltan los bits ya procesados (X = 0, Y = 1)
+#       y se suma con el primer bit no procesado de x (el blank cuenta
+#       como 0, así x puede ser más corto que y).
+#    3. Si la suma da 2 se escribe X y el acarreo se propaga hacia la
+#       izquierda sobre los bits no procesados de x: 1 -> 0 hasta hallar
+#       un 0 o un blank, que se vuelve 1.
+#    4. Cuando y se queda sin bits se borra '+', se cambian X -> 0 y
+#       Y -> 1, y se eliminan los ceros a la izquierda del resultado.
+#
+#  Estados:
+#    q0   va al final de la entrada
+#    q1   lee y borra el último bit de y; si encuentra '+', y ya terminó
+#    q2   [q2, b] lleva el bit b hacia la izquierda hasta '+'
+#    q3   [q3, b] salta los bits procesados de x y suma b al siguiente
+#    q4   propaga el acarreo hacia la izquierda
+#    q5   regresa al final de la cinta para tomar otro bit de y
+#    q6   limpia las marcas: X -> 0, Y -> 1
+#    q7   quita ceros a la izquierda
+#    q8   revisa si el 0 leído es el último dígito (si lo es, se conserva)
+#    q9   borra un cero a la izquierda
+#    q10  aceptación
+# =====================================================================
+name: Alteradora - suma binaria
+description: "Transforma x+y (binarios) en su suma, sin ceros a la izquierda"
+q_states:
+  q_list:
+  - q0
+  - q1
+  - q2
+  - q3
+  - q4
+  - q5
+  - q6
+  - q7
+  - q8
+  - q9
+  - q10
+  initial: q0
+  final: q10
+alphabet:
+- '0'
+- '1'
+- '+'
+tape_alphabet:
+- '0'
+- '1'
+- '+'
+- X
+- Y
+-
+delta:
+
+# ---------------------------------------------------------------------
+# q0: avanza hasta el final de la entrada
+# ---------------------------------------------------------------------
+# δ([q0, B], 0) = ([q0, B], 0, R)
+- params:
+    initial_state: q0
+    mem_cache_value:
+    tape_input: '0'
+  output:
+    final_state: q0
+    mem_cache_value:
+    tape_output: '0'
+    tape_displacement: R
+# δ([q0, B], 1) = ([q0, B], 1, R)
+- params:
+    initial_state: q0
+    mem_cache_value:
+    tape_input: '1'
+  output:
+    final_state: q0
+    mem_cache_value:
+    tape_output: '1'
+    tape_displacement: R
+# δ([q0, B], +) = ([q0, B], +, R)
+- params:
+    initial_state: q0
+    mem_cache_value:
+    tape_input: '+'
+  output:
+    final_state: q0
+    mem_cache_value:
+    tape_output: '+'
+    tape_displacement: R
+# δ([q0, B], B) = ([q1, B], B, L)
+- params:
+    initial_state: q0
+    mem_cache_value:
+    tape_input:
+  output:
+    final_state: q1
+    mem_cache_value:
+    tape_output:
+    tape_displacement: L
+
+# ---------------------------------------------------------------------
+# q1: toma el último bit de y, lo borra y lo guarda en caché.
+#     Si lo que queda al final es '+', y ya no tiene bits: se borra y se limpia
+# ---------------------------------------------------------------------
+# δ([q1, B], 0) = ([q2, 0], B, L)
+- params:
+    initial_state: q1
+    mem_cache_value:
+    tape_input: '0'
+  output:
+    final_state: q2
+    mem_cache_value: '0'
+    tape_output:
+    tape_displacement: L
+# δ([q1, B], 1) = ([q2, 1], B, L)
+- params:
+    initial_state: q1
+    mem_cache_value:
+    tape_input: '1'
+  output:
+    final_state: q2
+    mem_cache_value: '1'
+    tape_output:
+    tape_displacement: L
+# δ([q1, B], +) = ([q6, B], B, L)
+- params:
+    initial_state: q1
+    mem_cache_value:
+    tape_input: '+'
+  output:
+    final_state: q6
+    mem_cache_value:
+    tape_output:
+    tape_displacement: L
+
+# ---------------------------------------------------------------------
+# q2: lleva el bit guardado hacia la izquierda hasta '+'
+# ---------------------------------------------------------------------
+# δ([q2, 0], 0) = ([q2, 0], 0, L)
+- params:
+    initial_state: q2
+    mem_cache_value: '0'
+    tape_input: '0'
+  output:
+    final_state: q2
+    mem_cache_value: '0'
+    tape_output: '0'
+    tape_displacement: L
+# δ([q2, 0], 1) = ([q2, 0], 1, L)
+- params:
+    initial_state: q2
+    mem_cache_value: '0'
+    tape_input: '1'
+  output:
+    final_state: q2
+    mem_cache_value: '0'
+    tape_output: '1'
+    tape_displacement: L
+# δ([q2, 1], 0) = ([q2, 1], 0, L)
+- params:
+    initial_state: q2
+    mem_cache_value: '1'
+    tape_input: '0'
+  output:
+    final_state: q2
+    mem_cache_value: '1'
+    tape_output: '0'
+    tape_displacement: L
+# δ([q2, 1], 1) = ([q2, 1], 1, L)
+- params:
+    initial_state: q2
+    mem_cache_value: '1'
+    tape_input: '1'
+  output:
+    final_state: q2
+    mem_cache_value: '1'
+    tape_output: '1'
+    tape_displacement: L
+# δ([q2, 0], +) = ([q3, 0], +, L)
+- params:
+    initial_state: q2
+    mem_cache_value: '0'
+    tape_input: '+'
+  output:
+    final_state: q3
+    mem_cache_value: '0'
+    tape_output: '+'
+    tape_displacement: L
+# δ([q2, 1], +) = ([q3, 1], +, L)
+- params:
+    initial_state: q2
+    mem_cache_value: '1'
+    tape_input: '+'
+  output:
+    final_state: q3
+    mem_cache_value: '1'
+    tape_output: '+'
+    tape_displacement: L
+
+# ---------------------------------------------------------------------
+# q3: salta los bits de x ya procesados (X = 0, Y = 1) ...
+# ---------------------------------------------------------------------
+# δ([q3, 0], X) = ([q3, 0], X, L)
+- params:
+    initial_state: q3
+    mem_cache_value: '0'
+    tape_input: X
+  output:
+    final_state: q3
+    mem_cache_value: '0'
+    tape_output: X
+    tape_displacement: L
+# δ([q3, 0], Y) = ([q3, 0], Y, L)
+- params:
+    initial_state: q3
+    mem_cache_value: '0'
+    tape_input: Y
+  output:
+    final_state: q3
+    mem_cache_value: '0'
+    tape_output: Y
+    tape_displacement: L
+# δ([q3, 1], X) = ([q3, 1], X, L)
+- params:
+    initial_state: q3
+    mem_cache_value: '1'
+    tape_input: X
+  output:
+    final_state: q3
+    mem_cache_value: '1'
+    tape_output: X
+    tape_displacement: L
+# δ([q3, 1], Y) = ([q3, 1], Y, L)
+- params:
+    initial_state: q3
+    mem_cache_value: '1'
+    tape_input: Y
+  output:
+    final_state: q3
+    mem_cache_value: '1'
+    tape_output: Y
+    tape_displacement: L
+
+# ---------------------------------------------------------------------
+# q3: ... y suma el bit de la caché al primer bit no procesado de x
+#     (un blank a la izquierda de x cuenta como 0)
+# ---------------------------------------------------------------------
+# δ([q3, 0], 0) = ([q5, B], X, R)
+- params:
+    initial_state: q3
+    mem_cache_value: '0'
+    tape_input: '0'
+  output:
+    final_state: q5
+    mem_cache_value:
+    tape_output: X
+    tape_displacement: R
+# δ([q3, 0], 1) = ([q5, B], Y, R)
+- params:
+    initial_state: q3
+    mem_cache_value: '0'
+    tape_input: '1'
+  output:
+    final_state: q5
+    mem_cache_value:
+    tape_output: Y
+    tape_displacement: R
+# δ([q3, 0], B) = ([q5, B], X, R)
+- params:
+    initial_state: q3
+    mem_cache_value: '0'
+    tape_input:
+  output:
+    final_state: q5
+    mem_cache_value:
+    tape_output: X
+    tape_displacement: R
+# δ([q3, 1], 0) = ([q5, B], Y, R)
+- params:
+    initial_state: q3
+    mem_cache_value: '1'
+    tape_input: '0'
+  output:
+    final_state: q5
+    mem_cache_value:
+    tape_output: Y
+    tape_displacement: R
+# δ([q3, 1], B) = ([q5, B], Y, R)
+- params:
+    initial_state: q3
+    mem_cache_value: '1'
+    tape_input:
+  output:
+    final_state: q5
+    mem_cache_value:
+    tape_output: Y
+    tape_displacement: R
+# δ([q3, 1], 1) = ([q4, B], X, L)
+- params:
+    initial_state: q3
+    mem_cache_value: '1'
+    tape_input: '1'
+  output:
+    final_state: q4
+    mem_cache_value:
+    tape_output: X
+    tape_displacement: L
+
+# ---------------------------------------------------------------------
+# q4: propaga el acarreo: 1 -> 0 y sigue; 0 o blank -> 1 y termina
+# ---------------------------------------------------------------------
+# δ([q4, B], 1) = ([q4, B], 0, L)
+- params:
+    initial_state: q4
+    mem_cache_value:
+    tape_input: '1'
+  output:
+    final_state: q4
+    mem_cache_value:
+    tape_output: '0'
+    tape_displacement: L
+# δ([q4, B], 0) = ([q5, B], 1, R)
+- params:
+    initial_state: q4
+    mem_cache_value:
+    tape_input: '0'
+  output:
+    final_state: q5
+    mem_cache_value:
+    tape_output: '1'
+    tape_displacement: R
+# δ([q4, B], B) = ([q5, B], 1, R)
+- params:
+    initial_state: q4
+    mem_cache_value:
+    tape_input:
+  output:
+    final_state: q5
+    mem_cache_value:
+    tape_output: '1'
+    tape_displacement: R
+
+# ---------------------------------------------------------------------
+# q5: regresa al final de la cinta para tomar el siguiente bit de y
+# ---------------------------------------------------------------------
+# δ([q5, B], 0) = ([q5, B], 0, R)
+- params:
+    initial_state: q5
+    mem_cache_value:
+    tape_input: '0'
+  output:
+    final_state: q5
+    mem_cache_value:
+    tape_output: '0'
+    tape_displacement: R
+# δ([q5, B], 1) = ([q5, B], 1, R)
+- params:
+    initial_state: q5
+    mem_cache_value:
+    tape_input: '1'
+  output:
+    final_state: q5
+    mem_cache_value:
+    tape_output: '1'
+    tape_displacement: R
+# δ([q5, B], X) = ([q5, B], X, R)
+- params:
+    initial_state: q5
+    mem_cache_value:
+    tape_input: X
+  output:
+    final_state: q5
+    mem_cache_value:
+    tape_output: X
+    tape_displacement: R
+# δ([q5, B], Y) = ([q5, B], Y, R)
+- params:
+    initial_state: q5
+    mem_cache_value:
+    tape_input: Y
+  output:
+    final_state: q5
+    mem_cache_value:
+    tape_output: Y
+    tape_displacement: R
+# δ([q5, B], +) = ([q5, B], +, R)
+- params:
+    initial_state: q5
+    mem_cache_value:
+    tape_input: '+'
+  output:
+    final_state: q5
+    mem_cache_value:
+    tape_output: '+'
+    tape_displacement: R
+# δ([q5, B], B) = ([q1, B], B, L)
+- params:
+    initial_state: q5
+    mem_cache_value:
+    tape_input:
+  output:
+    final_state: q1
+    mem_cache_value:
+    tape_output:
+    tape_displacement: L
