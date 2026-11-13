@@ -276,3 +276,149 @@ delta:
     mem_cache_value:
     tape_output: X
     tape_displacement: L
+
+# ---------------------------------------------------------------------
+# q3: regresa a la izquierda sobre las X de la derecha hasta '#'
+# ---------------------------------------------------------------------
+# δ([q3, B], X) = ([q3, B], X, L)
+- params:
+    initial_state: q3
+    mem_cache_value:
+    tape_input: X
+  output:
+    final_state: q3
+    mem_cache_value:
+    tape_output: X
+    tape_displacement: L
+# δ([q3, B], #) = ([q4, B], #, L)
+- params:
+    initial_state: q3
+    mem_cache_value:
+    tape_input: "#"
+  output:
+    final_state: q4
+    mem_cache_value:
+    tape_output: "#"
+    tape_displacement: L
+
+# ---------------------------------------------------------------------
+# q4: regresa sobre los símbolos no marcados hasta la última X de w
+# ---------------------------------------------------------------------
+# δ([q4, B], a) = ([q4, B], a, L)
+- params:
+    initial_state: q4
+    mem_cache_value:
+    tape_input: a
+  output:
+    final_state: q4
+    mem_cache_value:
+    tape_output: a
+    tape_displacement: L
+# δ([q4, B], b) = ([q4, B], b, L)
+- params:
+    initial_state: q4
+    mem_cache_value:
+    tape_input: b
+  output:
+    final_state: q4
+    mem_cache_value:
+    tape_output: b
+    tape_displacement: L
+# δ([q4, B], c) = ([q4, B], c, L)
+- params:
+    initial_state: q4
+    mem_cache_value:
+    tape_input: c
+  output:
+    final_state: q4
+    mem_cache_value:
+    tape_output: c
+    tape_displacement: L
+# δ([q4, B], X) = ([q5, B], X, R)
+- params:
+    initial_state: q4
+    mem_cache_value:
+    tape_input: X
+  output:
+    final_state: q5
+    mem_cache_value:
+    tape_output: X
+    tape_displacement: R
+
+# ---------------------------------------------------------------------
+# q5: toma el siguiente símbolo de w; si es '#', w ya se recorrió
+# ---------------------------------------------------------------------
+# δ([q5, B], a) = ([q1, a], X, R)
+- params:
+    initial_state: q5
+    mem_cache_value:
+    tape_input: a
+  output:
+    final_state: q1
+    mem_cache_value: a
+    tape_output: X
+    tape_displacement: R
+# δ([q5, B], b) = ([q1, b], X, R)
+- params:
+    initial_state: q5
+    mem_cache_value:
+    tape_input: b
+  output:
+    final_state: q1
+    mem_cache_value: b
+    tape_output: X
+    tape_displacement: R
+# δ([q5, B], c) = ([q1, c], X, R)
+- params:
+    initial_state: q5
+    mem_cache_value:
+    tape_input: c
+  output:
+    final_state: q1
+    mem_cache_value: c
+    tape_output: X
+    tape_displacement: R
+# δ([q5, B], #) = ([q6, B], #, R)
+- params:
+    initial_state: q5
+    mem_cache_value:
+    tape_input: "#"
+  output:
+    final_state: q6
+    mem_cache_value:
+    tape_output: "#"
+    tape_displacement: R
+
+# ---------------------------------------------------------------------
+# q6: a la derecha de '#' solo deben quedar X; al llegar al blank acepta
+# ---------------------------------------------------------------------
+# δ([q6, B], X) = ([q6, B], X, R)
+- params:
+    initial_state: q6
+    mem_cache_value:
+    tape_input: X
+  output:
+    final_state: q6
+    mem_cache_value:
+    tape_output: X
+    tape_displacement: R
+# δ([q6, B], B) = ([q7, B], B, S)
+- params:
+    initial_state: q6
+    mem_cache_value:
+    tape_input:
+  output:
+    final_state: q7
+    mem_cache_value:
+    tape_output:
+    tape_displacement: S
+
+simulation_strings:
+# Aceptadas
+- abc#abc
+- bacab#bacab
+- ccab#ccab
+# Rechazadas
+- abc#acb       # la copia no coincide
+- abca#abc      # a la derecha falta un símbolo
+- ab#abca       # a la derecha sobra un símbolo
