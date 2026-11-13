@@ -77,7 +77,11 @@ def load_machine_file(path: Union[str, Path]) -> MachineSpec:
 
 def load_machine_text(text: str) -> MachineSpec:
     try:
-        document = yaml.safe_load(text)
+        # BaseLoader deja todos los escalares como texto. Con safe_load, YAML
+        # convierte valores como 0101 (octal → 65), 10 (int) o yes/no (bool),
+        # lo que rompe estados como '0' o cadenas binarias como 0101. Las
+        # entradas vacías quedan como '' y normalize_symbol las toma como blank.
+        document = yaml.load(text, Loader=yaml.BaseLoader)
     except yaml.YAMLError as error:
         raise MachineDefinitionError(f"el archivo YAML no es válido:\n{error}") from error
     return parse_document(document)
