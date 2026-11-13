@@ -10,6 +10,9 @@ Algoritmo (MT determinista que se detiene al aceptar):
 3. Si se llega a un estado final la cadena es ACEPTADA. Si no existe una
    transición para la configuración actual, la MT se detiene sin aceptar y
    la cadena es RECHAZADA.
+4. Como una MT puede no detenerse nunca, se fija un límite de pasos. Si se
+   alcanza sin llegar a un estado final, la cadena se reporta como
+   rechazada por límite de pasos.
 """
 
 from dataclasses import dataclass, field
@@ -30,6 +33,7 @@ class Outcome(Enum):
 
     ACCEPTED = "aceptada"
     REJECTED = "rechazada"
+    STEP_LIMIT = "límite de pasos"
     INVALID_INPUT = "entrada inválida"
 
     @property
@@ -80,8 +84,13 @@ class Configuration:
 class Simulator:
     """Ejecuta una MT determinista de una cinta."""
 
-    def __init__(self, machine: TuringMachine):
+    DEFAULT_MAX_STEPS = 10_000
+
+    def __init__(self, machine: TuringMachine, max_steps: int = DEFAULT_MAX_STEPS):
+        if max_steps < 1:
+            raise ValueError("max_steps debe ser al menos 1")
         self.machine = machine
+        self.max_steps = max_steps
 
     def initial_configuration(self, symbols: Iterable[Symbol]) -> Configuration:
         """[q0, B] con la entrada en la cinta y el cabezal en su primer símbolo."""
@@ -121,6 +130,12 @@ class Simulator:
                     input_string, Outcome.ACCEPTED, ids, config,
                     f"la MT se detuvo en el estado de aceptación {config.state} "
                     f"después de {config.steps} pasos",
+                )
+            if config.steps >= self.max_steps:
+                return self._finish(
+                    input_string, Outcome.STEP_LIMIT, ids, config,
+                    f"se alcanzó el límite de {self.max_steps} pasos sin llegar a un "
+                    "estado de aceptación (posible ciclo infinito)",
                 )
             state, cache, read = config.state, config.cache, config.tape.read()
             transition = self.step(config)
