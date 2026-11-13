@@ -129,12 +129,12 @@ class Simulator:
                 return self._finish(
                     input_string, Outcome.ACCEPTED, ids, config,
                     f"la MT se detuvo en el estado de aceptación {config.state} "
-                    f"después de {config.steps} pasos",
+                    f"después de {_steps(config.steps)}",
                 )
             if config.steps >= self.max_steps:
                 return self._finish(
                     input_string, Outcome.STEP_LIMIT, ids, config,
-                    f"se alcanzó el límite de {self.max_steps} pasos sin llegar a un "
+                    f"se alcanzó el límite de {_steps(self.max_steps)} sin llegar a un "
                     "estado de aceptación (posible ciclo infinito)",
                 )
             state, cache, read = config.state, config.cache, config.tape.read()
@@ -145,7 +145,7 @@ class Simulator:
                     input_string, Outcome.REJECTED, ids, config,
                     f"no existe δ([{state}, {fmt(cache)}], {fmt(read)}) y {state} "
                     f"no es un estado de aceptación; la MT se detuvo después de "
-                    f"{config.steps} pasos",
+                    f"{_steps(config.steps)}",
                 )
             ids.append(config.snapshot(transition))
 
@@ -153,3 +153,7 @@ class Simulator:
     def _finish(input_string: str, outcome: Outcome, ids: List[InstantaneousDescription],
                 config: Configuration, message: str) -> SimulationResult:
         return SimulationResult(input_string, outcome, message, ids, config.tape.content())
+
+
+def _steps(count: int) -> str:
+    return "1 paso" if count == 1 else f"{count} pasos"
