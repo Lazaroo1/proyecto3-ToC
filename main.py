@@ -7,6 +7,7 @@ Ejemplos:
 """
 
 import argparse
+import os
 import sys
 from pathlib import Path
 from typing import List, Optional
@@ -43,6 +44,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--sin-transiciones", action="store_true",
         help="no mostrar la transición aplicada junto a cada ID",
     )
+    parser.add_argument(
+        "--sin-color", action="store_true",
+        help="desactivar los colores de la salida",
+    )
     return parser
 
 
@@ -55,6 +60,30 @@ def configure_console() -> None:
             pass
 
 
+def colors_supported(disabled: bool) -> bool:
+    """Colores solo si la salida es una terminal y el usuario no los desactivó."""
+    if disabled or "NO_COLOR" in os.environ or not sys.stdout.isatty():
+        return False
+    if os.name == "nt":
+        return _enable_windows_ansi()
+    return True
+
+
+def _enable_windows_ansi() -> bool:
+    """Activa las secuencias ANSI (ENABLE_VIRTUAL_TERMINAL_PROCESSING) en Windows."""
+    try:
+        import ctypes
+
+        kernel32 = ctypes.windll.kernel32
+        handle = kernel32.GetStdHandle(-11)  # STD_OUTPUT_HANDLE
+        mode = ctypes.c_uint32()
+        if not kernel32.GetConsoleMode(handle, ctypes.byref(mode)):
+            return False
+        return bool(kernel32.SetConsoleMode(handle, mode.value | 0x0004))
+    except (AttributeError, OSError):
+        return False
+
+
 def main(argv: Optional[List[str]] = None) -> int:
     configure_console()
     parser = build_parser()
@@ -62,7 +91,10 @@ def main(argv: Optional[List[str]] = None) -> int:
     if args.max_pasos < 1:
         parser.error("--max-pasos debe ser al menos 1")
 
-    reporter = Reporter(show_transitions=not args.sin_transiciones)
+    reporter = Reporter(
+        color=colors_supported(args.sin_color),
+        show_transitions=not args.sin_transiciones,
+    )
 
     exit_code = 0
     for path in args.archivos:
