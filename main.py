@@ -45,6 +45,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="no mostrar la transición aplicada junto a cada ID",
     )
     parser.add_argument(
+        "--solo-resumen", action="store_true",
+        help="no imprimir las IDs de cada cadena, solo la tabla de resultados",
+    )
+    parser.add_argument(
         "--sin-color", action="store_true",
         help="desactivar los colores de la salida",
     )
@@ -146,9 +150,13 @@ def run(args: argparse.Namespace, output: Output) -> int:
         output.emit(lambda r: r.render_header(spec))
         strings = args.cadena if args.cadena is not None else spec.simulation_strings
         simulator = Simulator(spec.machine, max_steps=args.max_pasos)
+        results = []
         for index, text in enumerate(strings, start=1):
             result = simulator.run(text)
-            output.emit(lambda r: r.render_result(index, len(strings), result, spec.machine))
+            results.append(result)
+            if not args.solo_resumen:
+                output.emit(lambda r: r.render_result(index, len(strings), result, spec.machine))
+        output.emit(lambda r: r.render_summary(spec, results))
     return exit_code
 
 

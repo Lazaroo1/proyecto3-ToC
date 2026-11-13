@@ -1,7 +1,7 @@
-"""Presentación de resultados: encabezado de la MT y listado de IDs."""
+"""Presentación de resultados: encabezado de la MT, listado de IDs y resumen."""
 
-from typing import Union
 from pathlib import Path
+from typing import List, Sequence, Union
 
 from .instantaneous import join_symbols
 from .loader import MachineSpec
@@ -101,6 +101,50 @@ class Reporter:
 
     def _outcome(self, outcome: Outcome) -> str:
         return self._paint("accept" if outcome.accepted else "reject", OUTCOME_LABELS[outcome])
+
+    # ------------------------------------------------------------ resumen
+    def render_summary(self, spec: MachineSpec, results: Sequence[SimulationResult]) -> str:
+        """Tabla con el veredicto de cada cadena de la máquina."""
+        if not results:
+            return ""
+        blank = spec.machine.blank_display
+        headers = ("#", "Cadena", "Resultado", "Pasos", "Cinta final")
+        rows: List[tuple] = []
+        for index, result in enumerate(results, start=1):
+            simulated = result.outcome is not Outcome.INVALID_INPUT
+            if not simulated:
+                tape = "-"
+            elif result.final_tape:
+                tape = join_symbols(result.final_tape, blank)
+            else:
+                tape = "(solo blanks)"
+            rows.append((
+                str(index),
+                display_input(result.input_string),
+                OUTCOME_LABELS[result.outcome],
+                str(result.steps) if simulated else "-",
+                tape,
+            ))
+        widths = [max(len(h), *(len(row[k]) for row in rows)) for k, h in enumerate(headers)]
+
+        def format_row(cells, outcome=None):
+            padded = []
+            for k, cell in enumerate(cells):
+                text = cell.rjust(widths[k]) if k in (0, 3) else cell.ljust(widths[k])
+                if k == 2 and outcome is not None:
+                    text = self._paint("accept" if outcome.accepted else "reject", text)
+                padded.append(text)
+            return ("  " + "   ".join(padded)).rstrip()
+
+        accepted = sum(1 for r in results if r.accepted)
+        lines = [
+            self._paint("title", f" Resumen — {spec.title}"),
+            self._paint("bold", format_row(headers)),
+            "  " + "-" * (sum(widths) + 3 * (len(widths) - 1)),
+        ]
+        lines += [format_row(row, r.outcome) for row, r in zip(rows, results)]
+        lines.append(f"  Aceptadas: {accepted}/{len(results)}")
+        return "\n".join(lines) + "\n\n"
 
     def _render_ids(self, result: SimulationResult, blank: str) -> list:
         if not result.ids:
