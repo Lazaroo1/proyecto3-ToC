@@ -9,7 +9,9 @@ Teoría de la Computación — Universidad del Valle de Guatemala
 | Jorge Villeda | 24932 |
 | Lázaro Díaz   | 24713 |
 
-**Video de demostración:** _(pendiente: enlace de YouTube no listado)_
+[![Proyecto 3 - Computer Theory](https://youtube.com)](https://www.youtube.com/watch?v=XRv02g5_Eoc)
+
+ 
 
 ## Descripción
 
